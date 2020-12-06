@@ -3,20 +3,20 @@
     const data = rawInput
         .split(/[\n]{2,}/);
 
-    let totalUniqueAnswers = 0;
-
     function countUniqueAnswers(line: string) {
+        let count = 0;
         const answers: boolean[] = [];
         for (let i = 0; i < line.length; i++) {
             const char = line.charCodeAt(i);
             if (char == 10) continue;
             answers[char - 97] = true;
         }
-        answers.forEach(value => totalUniqueAnswers += (value ? 1 : 0));
-        console.log(line);
+        answers.forEach(value => count += (value ? 1 : 0));
+        return count;
     }
 
     function countUnanimousAnswers(line: string) {
+        let count = 0;
         const answers: number[] = Array<number>(26).fill(0);
         let subitems = 1;
         for (let i = 0; i < line.length; i++) {
@@ -27,12 +27,11 @@
                 answers[char - 97] += 1;
         }
         answers.forEach(value =>
-            totalUniqueAnswers += (value == subitems ? 1 : 0)
+            count += (value == subitems ? 1 : 0)
         );
-        console.log(line);
+        return count;
     }
 
-    data.forEach(item => countUnanimousAnswers(item));
-
-    console.log(totalUniqueAnswers);
+    console.log(`Total unique: ${data.reduce((total, item) => total + countUniqueAnswers(item), 0)}`);
+    console.log(`Total unanimous: ${data.reduce((total, item) => total + countUnanimousAnswers(item), 0)}`);
 })();
