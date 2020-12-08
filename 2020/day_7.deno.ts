@@ -51,7 +51,7 @@
 
     function contains(typeName: string): number {
         const bag = bagGraph.find(bag => bag.name == typeName)!;
-        return bag.total ?? (bag.total = bag.contains.reduce(
+        return bag.total ? (console.log("Duplicate", typeName), bag.total) : (bag.total = bag.contains.reduce(
             (total, bag) => total + bag.amount + bag.amount * contains(bag.name), 0
         ));
     }
