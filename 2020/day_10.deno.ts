@@ -25,7 +25,7 @@
         console.log(item, item - previous - 1);
         if (item - previous == 3) {
             console.log(`Group of: ${runCounter} ( * ${tribonnaci[runCounter]})`);
-            runMult *= tribonnaci[runCounter];
+            runMult *= tribonnaci[runCounter] ?? throw "Tribonnaci index out of bound";
             runCounter = 0;
         } else {
             runCounter++;
