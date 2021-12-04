@@ -52,88 +52,49 @@
         return false;
     }
 
-    let won = null;
-    let draw: number | undefined = undefined;
-    while (!won && bingoLine.length > 0) {
-        draw = bingoLine.shift()!;
-        console.log("Drawn:", draw);
-        const marked = grids.reduce((sum, g) => sum + (mark(g, draw!) ? 1 : 0), 0);
-        console.log("Marked", marked);
-        const maybeWin = grids.reduce(
-            (val: number | null, grid, idx) =>
-                val == null
-                    ? (winCheck(grid) ? idx : null)
-                    : val,
-            null
-        )
-        won = maybeWin;
-        console.log();
-    }
-    if (!draw)
-        throw new Error(`Nothing was drawn`);
-    console.log("The winner is", won);
-    if (!won)
-        throw new Error(`No winning board found, check code or input data`);
+    const state = bingoLine.reduce(
+        (state, draw) => {
+            if (state.playing.length == 0)
+                return state;
+            console.log("Still in play:", state.playing)
+            console.log("Drawn:", draw);
+            const marked = state.playing.map(i => grids[i]).reduce(
+                (sum, g) =>
+                    sum + (mark(g, draw!) ? 1 : 0),
+                0
+            );
+            console.log("Marked", marked);
+            const res = state.playing
+                .map((n): [number, boolean] => [n, winCheck(grids[n])]);
+            state.playing = res
+                    .filter(t => t[1] == false)
+                    .map(t => t[0]);
+            state.outNow = res
+                    .filter(t => t[1] == true)
+                    .map(t => t[0]);
+            console.log("Out:", state.outNow)
+            state.winners.push(
+                ...state.outNow.map(
+                    o => ({
+                        grid: o,
+                        score: grids[o].filter(n => n != -1).reduce((s, n) => s + n, 0) * draw
+                    })
+                )
+            );
+            console.log();
+            return state;
+        },
+        {
+            playing: grids
+                .map((g, i) => winCheck(g) ? null : i)
+                .filter(n => n != null) as number[],
+            outNow: grids
+                .map((g, i) => winCheck(g) ? i : null)
+                .filter(n => n != null) as number[],
+            winners: [] as { grid: number, score: number }[]
+        }
+    )
 
-    const winner = grids[won];
-    for (let i = 0; i < gridSize; i++) {
-        console.log(
-            winner.filter(
-                (_, n) =>
-                    n >= i * gridSize &&
-                    n < (i + 1) * gridSize
-            ).map(n => `${n == -1 ? "_" : n}`.padStart(3, " ")).join("")
-        )
-    }
-    const partOne = winner.filter(n => n != -1).reduce((s, n) => s + n, 0) * draw;
-
-    let playing = grids
-        .map((g, i) => winCheck(g) ? null : i)
-        .filter(n => n != null) as number[];
-
-    let outNow = grids
-        .map((g, i) => winCheck(g) ? i : null)
-        .filter(n => n != null) as number[];
-
-    while (playing.length > 0 && bingoLine.length > 0) {
-        console.log("Still in play:", playing)
-        draw = bingoLine.shift()!;
-        console.log("Drawn:", draw);
-        const marked = playing.map(i => grids[i]).reduce(
-            (sum, g) =>
-                sum + (mark(g, draw!) ? 1 : 0),
-            0
-        );
-        console.log("Marked", marked);
-        const res = playing
-            .map((n): [number, boolean] => [n, winCheck(grids[n])]);
-        playing = res
-                .filter(t => t[1] == false)
-                .map(t => t[0]);
-        outNow = res
-                .filter(t => t[1] == true)
-                .map(t => t[0]);
-        console.log("Out:", outNow)
-        console.log();
-    }
-
-    console.log("Numbers left:", bingoLine.length)
-    console.log("Still in play:", playing)
-    console.log("Just won:", outNow)
-
-    console.log("Part 1", partOne);
-    if (playing.length > 1)
-        throw new Error(`More than one board left in play, no solution for part 2 available`);
-    if (outNow.length > 1)
-        throw new Error(`More than one board just won, no solution for part 2 available`);
-    if (outNow.length == 0)
-        throw new Error(`No boards have won this turn, something is wrong or there's no bingo draws left`);
-
-    const partTwo = grids[outNow[0]!].filter(n => n != -1).reduce((s, n) => s + n, 0) * draw;
-    console.log("Part 2", partTwo);
-
-    /*console.log(
-        bingoLine,
-        grids
-    )*/
+    console.log("Part 1:", state.winners[0].score)
+    console.log("Part 2:", state.winners[state.winners.length - 1].score)
 })()
